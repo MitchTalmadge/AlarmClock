@@ -1,10 +1,15 @@
-﻿using NAudio.Wave;
+﻿using System.IO;
+using NAudio.Wave;
 
 namespace AlarmClock.Utilities
 {
     public class Mp3Looper : Mp3FileReader
     {
         public Mp3Looper(string mp3FileName) : base(mp3FileName)
+        {
+        }
+
+        public Mp3Looper(Stream inputStream) : base(inputStream)
         {
         }
 

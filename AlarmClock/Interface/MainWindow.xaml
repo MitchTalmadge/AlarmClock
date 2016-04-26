@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AlarmClock"
         mc:Ignorable="d"
-        Title="Alarm Clock" Height="400" Width="400" Loaded="Window_Loaded" Closing="Window_Closing" WindowState="Maximized" WindowStyle="None">
+        Title="Alarm Clock" Height="768" Width="1024" Loaded="Window_Loaded" Closing="Window_Closing" WindowState="Maximized" WindowStyle="None">
+    <Image x:Name="BackgroundImage" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Stretch="UniformToFill"/>
 </Window>
 

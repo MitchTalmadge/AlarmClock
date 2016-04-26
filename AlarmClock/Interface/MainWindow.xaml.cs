@@ -1,6 +1,8 @@
 ﻿using System;
+using System.IO;
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using AlarmClock.Utilities;
 using Microsoft.Kinect;
 using NAudio.Utils;
@@ -32,6 +34,8 @@ namespace AlarmClock.Interface
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             Background = new SolidColorBrush(Colors.Black);
+            BackgroundImage.Visibility = Visibility.Hidden;
+
             _wakeUpDetector = new WakeUpDetector();
             _wakeUpDetector.WakeUpConfirmedEvent += WakeUpDetectorOnWakeUpConfirmedEvent;
             _wakeUpDetector.WakeUpProgressEvent += WakeUpDetectorOnWakeUpProgressEvent;
@@ -41,7 +45,7 @@ namespace AlarmClock.Interface
                 Background = new SolidColorBrush(Colors.Black);
 
                 //Begin playing alarm clock sound on loop
-                PlayAudio("assets/audio/AlarmClock.mp3", true);
+                PlayAudio(AssetFinder.AssetToUri("audio/AlarmClock.mp3"), true);
             }
             else //Could not load Kinect Sensor. Just skip it.
             {
@@ -66,15 +70,15 @@ namespace AlarmClock.Interface
         /// <summary>
         /// Plays an mp3 file, with optional looping capabilities.
         /// </summary>
-        /// <param name="file">The path to the mp3 file.</param>
+        /// <param name="fileUri">The path to the mp3 file.</param>
         /// <param name="loop">True if the mp3 should loop continuously.</param>
         /// <returns>Duration of the mp3 file.</returns>
-        private TimeSpan PlayAudio(string file, bool loop)
+        private TimeSpan PlayAudio(Uri fileUri, bool loop)
         {
             _waveOut?.Dispose();
             _waveOut = new WaveOut();
 
-            var reader = loop ? new Mp3Looper(file) : new Mp3FileReader(file);
+            var reader = loop ? new Mp3Looper(Application.GetContentStream(fileUri)?.Stream) : new Mp3FileReader(Application.GetContentStream(fileUri)?.Stream);
             var totalTime = reader.TotalTime;
 
             _waveOut.Volume = 1.0f;
@@ -91,8 +95,10 @@ namespace AlarmClock.Interface
 
         private void DoWakeupRoutine()
         {
-            TimeSpan totalTime = PlayAudio("assets/audio/Intro.mp3", false); //Start playing intro music.
+            TimeSpan totalTime = PlayAudio(AssetFinder.AssetToUri("audio/Intro.mp3"), false); //Start playing intro music.
             Background = new SolidColorBrush(Colors.White);
+            BackgroundImage.Visibility = Visibility.Visible;
+            BackgroundImage.Source = new BitmapImage(AssetFinder.AssetToUri("images/bg1.jpg"));
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
