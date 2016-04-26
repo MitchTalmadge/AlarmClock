@@ -87,6 +87,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Utilities\AssetFinder.cs" />
+    <Compile Include="Utilities\MusicPlayer.cs" />
     <Compile Include="Utilities\WakeUpDetector.cs" />
     <Page Include="Interface\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
