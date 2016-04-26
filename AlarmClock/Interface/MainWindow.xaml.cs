@@ -14,10 +14,14 @@ namespace AlarmClock.Interface
     public partial class MainWindow
     {
 
+        /// <summary>
+        /// The wake up detector, which determines when the user has woken up.
+        /// </summary>
         private WakeUpDetector _wakeUpDetector;
 
-        //------------------------ Audio ------------------------//
-
+        /// <summary>
+        /// The audio output handler.
+        /// </summary>
         private WaveOut _waveOut;
 
         public MainWindow()
