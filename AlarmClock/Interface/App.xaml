@@ -1,8 +1,8 @@
-﻿<Application x:Class="AlarmClock.App"
+﻿<Application x:Class="AlarmClock.Interface.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:AlarmClock"
-             StartupUri="MainWindow.xaml">
+             StartupUri="Interface/MainWindow.xaml">
     <Application.Resources>
          
     </Application.Resources>

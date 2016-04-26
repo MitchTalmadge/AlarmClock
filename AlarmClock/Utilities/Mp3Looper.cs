@@ -1,6 +1,6 @@
 ﻿using NAudio.Wave;
 
-namespace AlarmClock
+namespace AlarmClock.Utilities
 {
     public class Mp3Looper : Mp3FileReader
     {
