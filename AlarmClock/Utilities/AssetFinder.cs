@@ -4,14 +4,9 @@ namespace AlarmClock.Utilities
 {
     public class AssetFinder
     {
-        public static Uri AssetToUri(string pathRelToAssets)
+        public static Uri PathToUri(string path)
         {
-            return new Uri("pack://application:,,,/assets/" + pathRelToAssets);
-        }
-
-        public static string AssetToPath(string pathRelToAssets)
-        {
-            return "assets/" + pathRelToAssets;
+            return new Uri("pack://application:,,,/"+path);
         }
     }
 }
