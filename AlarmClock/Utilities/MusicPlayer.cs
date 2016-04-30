@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Windows;
 using NAudio.Wave;
 
@@ -11,12 +12,12 @@ namespace AlarmClock.Utilities
         private WaveFileReader _waveFileReader;
 
         /// <summary>
-        /// Plays an mp3 file, with optional looping capabilities.
+        /// Initializes an mp3 file, with optional looping capabilities.
         /// </summary>
         /// <param name="audioAssetName">The name of the mp3 asset.</param>
         /// <param name="loop">True if the mp3 should loop continuously.</param>
         /// <returns>Duration of the mp3 file.</returns>
-        public TimeSpan PlayMp3Asset(string audioAssetName, bool loop)
+        public TimeSpan InitMp3Asset(string audioAssetName, bool loop)
         {
             Dispose();
             _waveOut = new WaveOut();
@@ -29,18 +30,17 @@ namespace AlarmClock.Utilities
 
             _waveOut.Volume = 1.0f;
             _waveOut.Init(_mp3FileReader);
-            _waveOut.Play();
 
             return totalTime;
         }
 
         /// <summary>
-        /// Plays a wav file, with optional looping capabilities.
+        /// Initializes a wav file, with optional looping capabilities.
         /// </summary>
         /// <param name="audioAssetName">The name of the wav asset.</param>
         /// <param name="loop">True if the wav should loop continuously.</param>
         /// <returns>Duration of the wav file.</returns>
-        public TimeSpan PlayWavAsset(string audioAssetName, bool loop)
+        public TimeSpan InitWavAsset(string audioAssetName, bool loop)
         {
             Dispose();
             _waveOut = new WaveOut();
@@ -54,9 +54,16 @@ namespace AlarmClock.Utilities
 
             _waveOut.Volume = 1.0f;
             _waveOut.Init(_waveFileReader);
-            _waveOut.Play();
 
             return totalTime;
+        }
+
+        public void PlayMusic()
+        {
+            StopMusic();
+            _waveFileReader?.Seek(0, SeekOrigin.Begin);
+            _mp3FileReader?.Seek(0, SeekOrigin.Begin);
+            _waveOut?.Play();
         }
 
         public void StopMusic()

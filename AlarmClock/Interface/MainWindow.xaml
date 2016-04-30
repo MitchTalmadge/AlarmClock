@@ -5,11 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:interface="clr-namespace:AlarmClock.Interface"
         mc:Ignorable="d"
-        Title="Alarm Clock" Height="768" Width="1024" Loaded="Window_Loaded" Closing="Window_Closing" WindowState="Maximized" WindowStyle="None" Background="Black">
+        Title="Alarm Clock" Height="768" Width="1024" Loaded="Window_Loaded" Closing="Window_Closing" WindowState="Maximized" WindowStyle="None" Background="Black" Cursor="None">
     <Canvas x:Name="MainCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-        <Image x:Name="BackgroundImage1" Canvas.Top="0" Canvas.Left="0" Width="1200" Height="1000" Stretch="UniformToFill" />
-        <Image x:Name="BackgroundImage2" Canvas.Top="0" Canvas.Left="0" Width="1200" Height="1000" Stretch="UniformToFill" />
         <interface:OutlinedTextBlock x:Name="ClockLabel" Text="7:00:00 AM" Canvas.Left="50" Canvas.Top="50" FontSize="50px" Fill="White" StrokeThickness="1" Stroke="Black"/>
+        <Rectangle x:Name="ProgressBar"  Fill="#0078ff" Height="50" Canvas.Bottom="0" Canvas.Left="0" Width="0"/>
     </Canvas>
 </Window>
 

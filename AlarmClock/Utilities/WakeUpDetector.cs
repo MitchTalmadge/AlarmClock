@@ -27,9 +27,9 @@ namespace AlarmClock.Utilities
         private const int MaxFluctuationTriggers = 30;
 
         /// <summary>
-        /// The number of successes required before an overall success is triggered. (1 success may be achieved per second.)
+        /// The number of successes required before an overall success is triggered. (30 successes may be achieved per second.)
         /// </summary>
-        private const int SuccessCountRequired = 150;
+        private const int SuccessCountRequired = 300; //300 / 30 = 10 seconds
 
         /// <summary>
         /// The number of successes
@@ -124,8 +124,8 @@ namespace AlarmClock.Utilities
                 if (_lastPixels == null)
                     _lastPixels = (DepthImagePixel[]) _currentPixels.Clone();
 
-                int pixelDistanceMatchCount = 0;
-                for (int i = 0; i < _currentPixels.Length; i++)
+                var pixelDistanceMatchCount = 0;
+                for (var i = 0; i < _currentPixels.Length; i++)
                 {
                     if (_fluctuationCount[i] >= MaxFluctuationTriggers)
                         continue; //This pixel fluctuates too much. Skip it.
@@ -145,7 +145,6 @@ namespace AlarmClock.Utilities
                 {
                     _successCount++;
                     WakeUpProgressEvent?.Invoke(_successCount, SuccessCountRequired);
-                    //_waveOut.Volume = (float)(1.0 - ((float)_successCount / SuccessCountRequired) * 1.0); //Adjust volume for fade
 
                     if (_successCount >= SuccessCountRequired)
                         //Enough successes;  Start main wakeup routine and shutdown Kinect.
@@ -158,7 +157,6 @@ namespace AlarmClock.Utilities
                 {
                     _successCount = 0;
                     WakeUpProgressEvent?.Invoke(_successCount, SuccessCountRequired);
-                    //_waveOut.Volume = 1.0f;
                 }
 
                 _lastPixels = (DepthImagePixel[]) _currentPixels.Clone();

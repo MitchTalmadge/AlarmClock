@@ -34,6 +34,7 @@ namespace AlarmClock.Interface
         /// An array containing the two background images that will overlay and fade between each other over time.
         /// </summary>
         private Image[] _backgroundImages;
+
         private int _currentBackgroundStage;
         private string _lastUsedBackgroundSource;
 
@@ -63,7 +64,8 @@ namespace AlarmClock.Interface
                 Background = new SolidColorBrush(Colors.Black);
 
                 //Begin playing alarm clock sound on loop
-                _musicPlayer.PlayWavAsset("AlarmClock.wav", true);
+                _musicPlayer.InitWavAsset("AlarmClock.wav", true);
+                _musicPlayer.PlayMusic();
             }
             else //Could not load Kinect Sensor. Just skip it.
             {
@@ -87,10 +89,13 @@ namespace AlarmClock.Interface
         {
             ClockLabel.Text = time.ToString("hh:mm:ss tt");
         }
-        
+
         private void DoWakeupRoutine()
         {
-            _musicPlayer.PlayWavAsset("Intro.wav", false); //Start playing intro music.
+            ProgressBar.Visibility = Visibility.Hidden; //Hide Progress Bar
+
+            _musicPlayer.InitWavAsset("Intro.wav", false); //Init intro music.
+            _musicPlayer.PlayMusic(); //Play
 
             LoadBackgroundImages();
 
@@ -105,19 +110,22 @@ namespace AlarmClock.Interface
             {
                 MainCanvas.Children.Insert(0, image);
 
-                image.Width = ActualWidth * 1.2;
-                image.Height = ActualHeight * 1.2;
+                image.Width = ActualWidth*1.2;
+                image.Height = ActualHeight*1.2;
                 image.Stretch = Stretch.UniformToFill;
                 image.Opacity = 0;
             }
 
-            var timer = new DispatcherTimer(DispatcherPriority.Render) {Interval = TimeSpan.FromSeconds(BackgroundSwitchInterval) };
+            var timer = new DispatcherTimer(DispatcherPriority.Render)
+            {
+                Interval = TimeSpan.FromSeconds(BackgroundSwitchInterval)
+            };
             timer.Tick += SwitchImageTick;
             timer.Start();
             SwitchImageTick(null, null);
         }
 
-        private string GetRandomBackgroundImageAssetPath(string previousImagePath)
+        private static string GetRandomBackgroundImageAssetPath(string previousImagePath)
         {
             var files = Directory.GetFiles("assets/images/backgrounds/");
             var numImages = files.Length;
@@ -185,8 +193,10 @@ namespace AlarmClock.Interface
             Canvas.SetTop(image, fromTop);
             Canvas.SetLeft(image, fromLeft);
 
-            image.BeginAnimation(Canvas.TopProperty, new DoubleAnimation(fromTop, toTop, TimeSpan.FromSeconds(BackgroundMovementDuration)));
-            image.BeginAnimation(Canvas.LeftProperty, new DoubleAnimation(fromLeft, toLeft, TimeSpan.FromSeconds(BackgroundMovementDuration)));
+            image.BeginAnimation(Canvas.TopProperty,
+                new DoubleAnimation(fromTop, toTop, TimeSpan.FromSeconds(BackgroundMovementDuration)));
+            image.BeginAnimation(Canvas.LeftProperty,
+                new DoubleAnimation(fromLeft, toLeft, TimeSpan.FromSeconds(BackgroundMovementDuration)));
         }
 
         private async void LoadWeatherTiles()
@@ -198,6 +208,7 @@ namespace AlarmClock.Interface
             var margin = Math.Floor(division*0.1);
 
             var beepPlayer = new MusicPlayer();
+            beepPlayer.InitWavAsset("Beep.wav", false);
 
             await Task.Delay(TimeSpan.FromMilliseconds(2000));
 
@@ -213,7 +224,7 @@ namespace AlarmClock.Interface
                 }
                 else
                 {
-                    beepPlayer.PlayWavAsset("Beep.wav", false);
+                    beepPlayer.PlayMusic();
 
                     var rect = new Rectangle
                     {
@@ -244,7 +255,9 @@ namespace AlarmClock.Interface
 
         private void WakeUpDetectorOnWakeUpProgressEvent(short progress, short max)
         {
-            _musicPlayer.SetVolume((float) (1.0 - ((float) progress/max)*1.0)); //Adjust volume for fade
+            var relativeProgress = (float) (1.0 - ((float) progress/max)*1.0);
+            _musicPlayer.SetVolume(relativeProgress); //Adjust volume for fade
+            ProgressBar.Width = ActualWidth*(1 - relativeProgress); //Adjust progress bar width
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
