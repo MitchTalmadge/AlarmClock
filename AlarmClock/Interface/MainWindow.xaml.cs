@@ -92,7 +92,7 @@ namespace AlarmClock.Interface
 
         private void DoWakeupRoutine()
         {
-            ProgressBar.Visibility = Visibility.Hidden; //Hide Progress Bar
+            ProgressBar.BeginAnimation(OpacityProperty, new DoubleAnimation(1.0, 0, TimeSpan.FromSeconds(5))); //Fade out progress bar
 
             _musicPlayer.InitWavAsset("Intro.wav", false); //Init intro music.
             _musicPlayer.PlayMusic(); //Play
