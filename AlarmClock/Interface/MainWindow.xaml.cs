@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
-using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -9,10 +8,9 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using System.Speech.Synthesis;
 using AlarmClock.Utilities;
-using Microsoft.Kinect;
-using NAudio.Utils;
-using NAudio.Wave;
+using ForecastIO;
 
 namespace AlarmClock.Interface
 {
@@ -27,6 +25,8 @@ namespace AlarmClock.Interface
         private WakeUpDetector _wakeUpDetector;
 
         private MusicPlayer _musicPlayer;
+
+        private ForecastIOResponse _forecast;
 
         //-------- Background Images --------//
 
@@ -57,6 +57,9 @@ namespace AlarmClock.Interface
 
             _musicPlayer = new MusicPlayer();
 
+            var request = new ForecastIORequest("1151936ce22897f529d08c57a1e8bb71", 40.579219f, -111.999608f, Unit.us);
+            _forecast = request.Get();
+
             StartClock();
 
             if (_wakeUpDetector.StartDetection())
@@ -64,7 +67,7 @@ namespace AlarmClock.Interface
                 Background = new SolidColorBrush(Colors.Black);
 
                 //Begin playing alarm clock sound on loop
-                _musicPlayer.InitWavAsset("AlarmClock.wav", true);
+                _musicPlayer.InitAudioAsset("AlarmClock.wav", true);
                 _musicPlayer.PlayMusic();
             }
             else //Could not load Kinect Sensor. Just skip it.
@@ -92,9 +95,10 @@ namespace AlarmClock.Interface
 
         private void DoWakeupRoutine()
         {
-            ProgressBar.BeginAnimation(OpacityProperty, new DoubleAnimation(1.0, 0, TimeSpan.FromSeconds(5))); //Fade out progress bar
+            ProgressBar.BeginAnimation(OpacityProperty, new DoubleAnimation(1.0, 0, TimeSpan.FromSeconds(2)));
+                //Fade out progress bar
 
-            _musicPlayer.InitWavAsset("Intro.wav", false); //Init intro music.
+            _musicPlayer.InitAudioAsset("Intro.wav", false); //Init intro music.
             _musicPlayer.PlayMusic(); //Play
 
             LoadBackgroundImages();
@@ -208,7 +212,7 @@ namespace AlarmClock.Interface
             var margin = Math.Floor(division*0.1);
 
             var beepPlayer = new MusicPlayer();
-            beepPlayer.InitWavAsset("Beep.wav", false);
+            beepPlayer.InitAudioAsset("Beep.wav", false);
 
             await Task.Delay(TimeSpan.FromMilliseconds(2000));
 
@@ -221,6 +225,7 @@ namespace AlarmClock.Interface
                 {
                     beepPlayer.Dispose();
                     timer.Stop();
+                    Speak();
                 }
                 else
                 {
@@ -244,6 +249,27 @@ namespace AlarmClock.Interface
                 counter++;
             };
             timer.Start();
+        }
+
+        private async void Speak()
+        {
+            var counter = 0;
+            var timer = new DispatcherTimer(DispatcherPriority.Render) {Interval = TimeSpan.FromMilliseconds(20)};
+            timer.Tick += (sender, args) =>
+            {
+                _musicPlayer.SetVolume(1.0f - (counter * 0.008f));
+                counter++;
+                if (counter == 100) //(100 * 0.008 = 0.8), resulting in 0.2 volume in (20 * 100 = 2) seconds
+                    timer.Stop();
+            };
+            timer.Start();
+
+            await Task.Delay(2000);
+            var synthesizer = new SpeechSynthesizer {Volume = 100};
+            synthesizer.SelectVoiceByHints(VoiceGender.Male, VoiceAge.Adult);
+            synthesizer.SpeakAsync("Goodmorning. The time is " + DateTime.Now.ToString("hh:mm tt") +
+                                   ". Today's weather will be " + _forecast.daily.data[0].summary +
+                                   ". A summary of the weather this week is: " + _forecast.daily.summary);
         }
 
         private void WakeUpDetectorOnWakeUpConfirmedEvent()

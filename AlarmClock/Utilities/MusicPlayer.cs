@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Windows;
 using NAudio.Wave;
 
 namespace AlarmClock.Utilities
@@ -8,52 +7,24 @@ namespace AlarmClock.Utilities
     public class MusicPlayer : IDisposable
     {
         private WaveOut _waveOut;
-        private Mp3FileReader _mp3FileReader;
-        private WaveFileReader _waveFileReader;
+        private AudioFileReader _audioFileReader;
 
         /// <summary>
-        /// Initializes an mp3 file, with optional looping capabilities.
+        /// Initializes an audio file, with optional looping capabilities.
         /// </summary>
-        /// <param name="audioAssetName">The name of the mp3 asset.</param>
-        /// <param name="loop">True if the mp3 should loop continuously.</param>
-        /// <returns>Duration of the mp3 file.</returns>
-        public TimeSpan InitMp3Asset(string audioAssetName, bool loop)
+        /// <param name="audioAssetName">The name of the audio asset.</param>
+        /// <param name="loop">True if the audio should loop continuously.</param>
+        /// <returns>Duration of the audio file.</returns>
+        public TimeSpan InitAudioAsset(string audioAssetName, bool loop)
         {
             Dispose();
             _waveOut = new WaveOut();
 
-            _mp3FileReader = loop
-                ? new Mp3Looper(Application.GetContentStream(AssetFinder.PathToUri("assets/audio/" + audioAssetName))?.Stream)
-                : new Mp3FileReader(
-                    Application.GetContentStream(AssetFinder.PathToUri("assets/audio/" + audioAssetName))?.Stream);
-            var totalTime = _mp3FileReader.TotalTime;
+            _audioFileReader = new AudioFileLooper("assets/audio/" + audioAssetName, loop);
 
-            _waveOut.Volume = 1.0f;
-            _waveOut.Init(_mp3FileReader);
+            var totalTime = _audioFileReader.TotalTime;
 
-            return totalTime;
-        }
-
-        /// <summary>
-        /// Initializes a wav file, with optional looping capabilities.
-        /// </summary>
-        /// <param name="audioAssetName">The name of the wav asset.</param>
-        /// <param name="loop">True if the wav should loop continuously.</param>
-        /// <returns>Duration of the wav file.</returns>
-        public TimeSpan InitWavAsset(string audioAssetName, bool loop)
-        {
-            Dispose();
-            _waveOut = new WaveOut();
-
-            _waveFileReader = loop
-                 ? new WaveLooper(Application.GetContentStream(AssetFinder.PathToUri("assets/audio/" + audioAssetName))?.Stream)
-                 : new WaveFileReader(
-                     Application.GetContentStream(AssetFinder.PathToUri("assets/audio/" + audioAssetName))?.Stream);
-
-            var totalTime = _waveFileReader.TotalTime;
-
-            _waveOut.Volume = 1.0f;
-            _waveOut.Init(_waveFileReader);
+            _waveOut.Init(_audioFileReader);
 
             return totalTime;
         }
@@ -61,8 +32,8 @@ namespace AlarmClock.Utilities
         public void PlayMusic()
         {
             StopMusic();
-            _waveFileReader?.Seek(0, SeekOrigin.Begin);
-            _mp3FileReader?.Seek(0, SeekOrigin.Begin);
+            _audioFileReader.Position = 0; //Restart
+
             _waveOut?.Play();
         }
 
@@ -76,16 +47,48 @@ namespace AlarmClock.Utilities
             if (volume < 0) volume = 0;
             if (volume > 1.0) volume = 1.0f;
 
-            if (_waveOut != null)
-                _waveOut.Volume = volume;
+            if (_audioFileReader != null)
+                _audioFileReader.Volume = volume;
         }
 
         public void Dispose()
         {
             StopMusic();
             _waveOut?.Dispose();
-            _mp3FileReader?.Dispose();
-            _waveFileReader?.Dispose();
+            _audioFileReader?.Dispose();
+        }
+    }
+
+    public class AudioFileLooper : AudioFileReader
+    {
+        private readonly bool _loop;
+
+        public AudioFileLooper(string fileName, bool loop) : base(fileName)
+        {
+            _loop = loop;
+        }
+
+        public override int Read(byte[] buffer, int offset, int numBytes)
+        {
+            /*var totalBytesRead = 0;
+
+            while (totalBytesRead < numBytes)
+            {
+                var bytesRead = base.Read(buffer, offset + totalBytesRead, numBytes - totalBytesRead);
+                if (bytesRead == 0 && _loop) //End of File
+                {
+                    Position = 0; //Back to beginning
+                }
+                totalBytesRead += bytesRead;
+            }
+            return totalBytesRead;*/
+            var output = base.Read(buffer, offset, numBytes);
+            if (output == 0 && _loop)
+            {
+                Position = 0;
+                output = base.Read(buffer, offset, numBytes);
+            }
+            return output;
         }
     }
 }
