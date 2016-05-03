@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -9,6 +11,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using System.Speech.Synthesis;
+using System.Text.RegularExpressions;
+using System.Threading;
 using AlarmClock.Utilities;
 using ForecastIO;
 
@@ -96,7 +100,7 @@ namespace AlarmClock.Interface
         private void DoWakeupRoutine()
         {
             ProgressBar.BeginAnimation(OpacityProperty, new DoubleAnimation(1.0, 0, TimeSpan.FromSeconds(2)));
-                //Fade out progress bar
+            //Fade out progress bar
 
             _musicPlayer.InitAudioAsset("Intro.wav", false); //Init intro music.
             _musicPlayer.PlayMusic(); //Play
@@ -254,22 +258,49 @@ namespace AlarmClock.Interface
         private async void Speak()
         {
             var counter = 0;
-            var timer = new DispatcherTimer(DispatcherPriority.Render) {Interval = TimeSpan.FromMilliseconds(20)};
+            var timer = new DispatcherTimer(DispatcherPriority.Render) {Interval = TimeSpan.FromMilliseconds(30)};
             timer.Tick += (sender, args) =>
             {
-                _musicPlayer.SetVolume(1.0f - (counter * 0.008f));
+                _musicPlayer.SetVolume(1.0f - (counter*0.008f));
                 counter++;
-                if (counter == 100) //(100 * 0.008 = 0.8), resulting in 0.2 volume in (20 * 100 = 2) seconds
+                if (counter == 100) //(100 * 0.008 = 0.8), resulting in 0.2 volume in (30 * 100 = 3) seconds
                     timer.Stop();
             };
             timer.Start();
 
-            await Task.Delay(2000);
-            var synthesizer = new SpeechSynthesizer {Volume = 100};
-            synthesizer.SelectVoiceByHints(VoiceGender.Male, VoiceAge.Adult);
-            synthesizer.SpeakAsync("Goodmorning. The time is " + DateTime.Now.ToString("hh:mm tt") +
-                                   ". Today's weather will be " + _forecast.daily.data[0].summary +
-                                   ". A summary of the weather this week is: " + _forecast.daily.summary);
+            await Task.Factory.StartNew(() =>
+            {
+                var greeting = "Good";
+                var hour = DateTime.Now.Hour;
+                if (hour > 18)
+                    greeting += "Evening";
+                else if (hour > 12)
+                    greeting += "Afternoon";
+                else
+                    greeting += "Morning";
+
+                var summary = greeting + ". It is " + DateHelper.DateToText(DateTime.Now, true) +
+                                 ". Today's weather will be " +
+                                 _forecast.daily.data[0].summary +
+                                 ". A summary of the weather this week is: " + _forecast.daily.summary;
+                using (var client = new HttpClient())
+                {
+                    client.BaseAddress = new Uri("http://www.acapela-group.com");
+                    var content = new FormUrlEncodedContent(new[]
+                    {
+                        new KeyValuePair<string, string>("MyLanguages", "sonid9"),
+                        new KeyValuePair<string, string>("MySelectedVoice", "Graham"),
+                        new KeyValuePair<string, string>("MyTextForTTS", summary),
+                        new KeyValuePair<string, string>("SendToVaaS", "")
+                    });
+                    var result = client.PostAsync("/demo-tts/DemoHTML5Form_V2.php", content).Result;
+                    var resultContent = result.Content.ReadAsStringAsync().Result;
+                    const string pattern = "myPhpVar = '(.+)';";
+                    var match = Regex.Match(resultContent, pattern);
+                    if (match.Groups.Count > 1)
+                        MusicPlayer.PlayMp3FromUrl(match.Groups[1].ToString());
+                }
+            });
         }
 
         private void WakeUpDetectorOnWakeUpConfirmedEvent()
