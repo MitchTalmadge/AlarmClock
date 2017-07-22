@@ -1,0 +1,14 @@
+﻿<Window x:Class="AlarmClock.Interface.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:interface="clr-namespace:AlarmClock.Interface"
+        mc:Ignorable="d"
+        Title="Alarm Clock" Height="768" Width="1024" Loaded="Window_Loaded" Closing="Window_Closing" WindowState="Maximized" WindowStyle="None" Background="Black" Cursor="None">
+    <Canvas x:Name="MainCanvas" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+        <interface:OutlinedTextBlock x:Name="ClockLabel" Text="7:00:00 AM" Canvas.Left="50" Canvas.Top="50" FontSize="50px" Fill="White" StrokeThickness="1" Stroke="Black"/>
+        <Rectangle x:Name="ProgressBar"  Fill="#0078ff" Height="50" Canvas.Bottom="0" Canvas.Left="0" Width="0"/>
+    </Canvas>
+</Window>
+
